@@ -34,7 +34,7 @@
     "rebuild": "npm run clean && npm run build",
     "prestart": "npm run rebuild",
     "start": "node -r source-map-support/register .",
-    "start:dev": "npm ci && nodemon",
+    "start:dev": "npm i && nodemon",
     "clean": "lb-clean dist *.tsbuildinfo .eslintcache"
   },
   "nodemonConfig": {
@@ -71,10 +71,9 @@
     "@loopback/rest": "^9.1.2",
     "@loopback/rest-explorer": "^3.0.6",
     "@loopback/service-proxy": "^3.0.6",
-    "dotenv": "^8.2.0",
-    "ethers": "^5.0.31",
     "loopback-connector-postgresql": "^5.3.0",
     "moment": "^2.29.1",
+    "ethers": "^5.0.31",
     "tslib": "^2.0.0"
   },
   "devDependencies": {

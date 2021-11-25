@@ -9,6 +9,7 @@ export class Web3PlusDataSource extends juggler.DataSource {
     @inject('datasources.config.web3plus', {optional: true})
     dsConfig: object = config,
   ) {
+    //console.log(JSON.stringify(dsConfig, null, 2))
     super(dsConfig);
   }
 }

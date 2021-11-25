@@ -19,7 +19,7 @@ export async function main(options: ApplicationConfig = {}) {
 
   const url = app.restServer.url;
   console.log(`Server is running at ${url}`);
-  console.log(`Try ${url}/ping`);
+  console.log(`Try ${process.env.LB_URL}`);
 
   return app;
 }
@@ -31,8 +31,17 @@ if (require.main === module) {
       port: 3000,
       gracePeriodForClose: 5000,
       openApiSpec: {
-        setServersFromRequest: true,
+        setServersFromRequest: false,
+        servers: [{url: process.env.LB_URL}]
       },
+      cors: {
+        origin: process.env.ALLOWED_CORS,
+        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
+        maxAge: 86400,
+        credentials: true
+      }
     },
   };
   main(config).catch(err => {

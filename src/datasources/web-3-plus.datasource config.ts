@@ -4,7 +4,7 @@ export const config = {
   provider: process.env.WEB3_PROVIDER,
   providerName: process.env.WEB3_PROVIDER_NAME,
   privateKeyFile: './secrets.json',
-  gas: process.env.WEB3_GAS,
+  gas: Number(process.env.WEB3_GAS),
   contracts: [
     {
       name: 'Registry',

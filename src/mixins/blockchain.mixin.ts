@@ -57,7 +57,8 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
           await this.contracts[this.smartContract].methods.currentRoot().call(),
         );
         return OK_RESPONSE(this.providerName, this.contractAddress, root, '-1');
-      } catch (error) {
+      } catch (error: any) {
+        console.log(error);
         if (error.message.includes('connection not open')) {
           const reconnected = await this.reconnectWeb3(); // try to reconnect to blockchain
           if (!reconnected) {
@@ -75,7 +76,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
               root,
               '-1',
             );
-          } catch (newError) {
+          } catch (newError: any) {
             if (newError.message.includes('connection not open')) {
               return CONNECTION_ERROR(this.providerName, this.contractAddress);
             }
@@ -207,7 +208,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
     ): Promise<any> {
       try {
         await this.web3.eth.net.isListening();
-      } catch (err) {
+      } catch (err: any) {
         if (err.message.includes('connection not open')) {
           return CONNECTION_ERROR_PENDING(
             this.providerName,
@@ -347,7 +348,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
                 signedTx: txInfo.signedTx,
               });
             transaction.commit();
-          } catch (error) {
+          } catch (error: any) {
             transaction.rollback();
             if (error.message.includes('connection not open')) {
               return CONNECTION_ERROR(this.providerName, this.contractAddress);

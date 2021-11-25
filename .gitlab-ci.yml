@@ -13,11 +13,11 @@ build:
     name: docker:19.03.13
   services:
       - name: docker:19.03.13-dind
-        entrypoint: ["sh", "-c", "dockerd-entrypoint.sh --insecure-registry=$NEXUS_REGISTRY"]  
+        entrypoint: ["sh", "-c", "dockerd-entrypoint.sh --insecure-registry=$NEXUS_REGISTRY"]
   before_script:
     - docker login $NEXUS_REGISTRY -u $NEXUS_USER -p $NEXUS_PASSWORD
   script:
-    - docker build -t $NEXUS_IMAGE_TAG --build-arg WEB3_KEY=$WEB3_KEY .
+    - docker build -t $NEXUS_IMAGE_TAG .
     - docker push $NEXUS_IMAGE_TAG
   after_script:
     - docker logout $NEXUS_REGISTRY
