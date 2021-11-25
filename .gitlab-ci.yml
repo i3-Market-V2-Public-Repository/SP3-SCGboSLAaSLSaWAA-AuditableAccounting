@@ -1,0 +1,23 @@
+build:
+  stage: build
+  image:
+    name: docker
+  services:
+      - name: docker:dind
+        command: ["--insecure-registry=$NEXUS_REGISTRY"]
+  before_script:
+    - docker login -u $NEXUS_USER -p $NEXUS_PASSWORD "$NEXUS_REGISTRY"
+  script:
+    - docker build -t $NEXUS_REGISTRY/auditable-accounting .
+    - docker push $NEXUS_REGISTRY/auditable-accounting
+  after_script:
+    - docker logout $NEXUS_REGISTRY
+  rules:
+    - if: $CI_COMMIT_BRANCH == "pro"
+
+deploy:
+  stage: deploy
+  script:
+    - 'curl --request POST --header "Authorization: Bearer $ANSIBLE_DEPLOY_TOKEN" "$URL_DEPLOY_AA"'
+  rules:
+    - if: $CI_COMMIT_BRANCH == "pro" && $DEPLOY == "true"
