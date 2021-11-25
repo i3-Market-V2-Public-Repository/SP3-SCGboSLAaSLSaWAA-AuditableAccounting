@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+  loopback:
+    image: node:16
+    restart: unless-stopped
+    env_file: .env
+    user: "node"
+    working_dir: /app
+    command: "npm run start:dev"
+    volumes:
+      - ".:/app"
+    ports:
+      - "8080:3000"
