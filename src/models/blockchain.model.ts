@@ -8,6 +8,10 @@ export class Blockchain extends Entity {
     id: true,
     generated: false,
     required: true,
+    useDefaultIdType: false,
+    postgresql: {
+      dataType: 'now',
+    },
   })
   id: string;
 
