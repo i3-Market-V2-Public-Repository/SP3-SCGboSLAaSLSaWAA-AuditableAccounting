@@ -6,13 +6,6 @@ export class Blockchain extends Entity {
   @property({
     type: 'number',
     id: true,
-    required: false,
-    generated: true,
-    useDefaultIdType: false,
-    defaultFn: 'now',
-    postgresql: {
-      defaultFn: 'now',
-    },
   })
   id: string;
 
