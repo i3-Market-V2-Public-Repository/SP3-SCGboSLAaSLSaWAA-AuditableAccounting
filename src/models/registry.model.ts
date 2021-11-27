@@ -3,8 +3,8 @@ import {Entity, model, property} from '@loopback/repository';
 @model()
 export class Registry extends Entity {
   @property({
-    type: 'number',
     id: true,
+    type: 'number',
   })
   id?: number;
 

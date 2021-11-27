@@ -13,10 +13,7 @@ services:
     ports:
       - "8080:3000"
 
-  postgres:
-    image: postgres:latest
+  cockroach:
+    image: cockroachdb/cockroach
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
+    command: start-single-node --insecure
