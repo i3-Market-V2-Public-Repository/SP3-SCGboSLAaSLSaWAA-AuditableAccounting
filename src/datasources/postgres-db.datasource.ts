@@ -1,11 +1,12 @@
 import {inject, lifeCycleObserver, LifeCycleObserver} from '@loopback/core';
 import {juggler} from '@loopback/repository';
-import {config} from './postgres-db.datasource config';
+import {config} from './postgres-db.datasource.config.ssl';
 
 @lifeCycleObserver('datasource')
 export class PostgresDbDataSource
   extends juggler.DataSource
   implements LifeCycleObserver {
+
   static dataSourceName = 'postgresDB';
   static readonly defaultConfig = config;
 
