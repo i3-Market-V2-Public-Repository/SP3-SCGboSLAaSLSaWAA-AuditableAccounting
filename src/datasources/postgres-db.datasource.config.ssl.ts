@@ -5,6 +5,7 @@ export const config = {
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : '',
   user: process.env.DB_USER ? String(process.env.DB_USER) : '',
   database: process.env.DB_NAME ? String(process.env.DB_NAME) : '',
+  debug: true,
   ssl: {
     rejectUnauthorized: false,
     ca: process.env.DB_CA ? process.env.DB_CA : '',

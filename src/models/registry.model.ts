@@ -3,14 +3,8 @@ import {Entity, model, property} from '@loopback/repository';
 @model()
 export class Registry extends Entity {
   @property({
-    type: 'number',
     id: true,
-    required: false,
-    generated: true,
-    useDefaultIdType: false,
-    postgresql: {
-      dataType: 'now',
-    },
+    type: 'number',
   })
   id?: number;
 

@@ -4,10 +4,8 @@ import moment from "moment";
 @model()
 export class Blockchain extends Entity {
   @property({
-    type: 'string',
     id: true,
-    generated: false,
-    required: true,
+    type: 'string',
   })
   id: string;
 
