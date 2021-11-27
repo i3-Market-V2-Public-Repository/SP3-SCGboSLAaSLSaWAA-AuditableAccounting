@@ -6,7 +6,8 @@ export class Registry extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    defaultFn: "now",
+    useDefaultIdType: false,
+    defaultFn: 'now'
   })
   id?: number;
 
