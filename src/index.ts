@@ -24,7 +24,7 @@ export async function main(options: ApplicationConfig = {}) {
     .then(() => {
       client.query('CREATE SEQUENCE IF NOT EXISTS public.registry_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1');
       client.query("CREATE TABLE IF NOT EXISTS public.blockchain (id text PRIMARY KEY NOT NULL, nonce integer NOT NULL, txhash text NOT NULL, \"timestamp\" integer DEFAULT 1631727777 NOT NULL, registrationstate text DEFAULT 'unregistered'::text NOT NULL)");
-      client.query("CREATE TABLE IF NOT EXISTS public.registry (id integer PRIMARY KEY NOT NULL DEFAULT nextval('public.registry_id_seq'::regclass), dateofreception integer, datahash text, merkleroot text, merkleproof text, readyforregistration boolean DEFAULT true)");
+      client.query("CREATE TABLE IF NOT EXISTS public.registry (id integer PRIMARY KEY NOT NULL DEFAULT nextval('public.registry_id_seq'), dateofreception integer, datahash text, merkleroot text, merkleproof text, readyforregistration boolean DEFAULT true)");
       client.query(`ALTER TABLE IF EXISTS public.blockchain OWNER TO "${process.env.DB_USER}"`);
       client.query(`ALTER TABLE IF EXISTS public.registry OWNER TO "${process.env.DB_USER}"`);
       client.query(`ALTER TABLE IF EXISTS public.registry_id_seq OWNER TO "${process.env.DB_USER}"`);
