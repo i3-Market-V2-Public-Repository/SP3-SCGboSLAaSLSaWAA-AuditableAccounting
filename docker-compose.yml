@@ -17,3 +17,5 @@ services:
     image: cockroachdb/cockroach
     restart: unless-stopped
     command: start-single-node --insecure
+    ports:
+      - "26257:26257"

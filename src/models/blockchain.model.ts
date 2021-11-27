@@ -5,7 +5,7 @@ import moment from "moment";
 export class Blockchain extends Entity {
   @property({
     id: true,
-    type: 'number',
+    type: 'string',
   })
   id: string;
 
