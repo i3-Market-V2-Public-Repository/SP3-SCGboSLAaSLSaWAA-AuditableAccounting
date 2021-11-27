@@ -5,9 +5,12 @@ export class Registry extends Entity {
   @property({
     type: 'number',
     id: true,
+    required: false,
     generated: true,
     useDefaultIdType: false,
-    defaultFn: 'now'
+    postgresql: {
+      dataType: 'now',
+    },
   })
   id?: number;
 
