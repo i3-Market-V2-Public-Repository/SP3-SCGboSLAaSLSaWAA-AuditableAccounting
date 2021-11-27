@@ -19,7 +19,7 @@ export async function main(options: ApplicationConfig = {}) {
 
   const url = app.restServer.url;
   console.log(`Server is running at ${url}`);
-  console.log(`Try ${process.env.LB_URL}`);
+  console.log(`Try ${url}/explorer`);
 
   return app;
 }
@@ -31,8 +31,7 @@ if (require.main === module) {
       port: 3000,
       gracePeriodForClose: 5000,
       openApiSpec: {
-        setServersFromRequest: false,
-        servers: [{url: process.env.LB_URL}]
+        setServersFromRequest: true,
       },
       cors: {
         origin: process.env.ALLOWED_CORS,
