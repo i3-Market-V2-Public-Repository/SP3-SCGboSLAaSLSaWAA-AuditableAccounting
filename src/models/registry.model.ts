@@ -8,8 +8,9 @@ export class Registry extends Entity {
     required: false,
     generated: true,
     useDefaultIdType: false,
+    defaultFn: 'now',
     postgresql: {
-      dataType: 'now',
+      defaultFn: 'now',
     },
   })
   id?: number;

@@ -4,13 +4,14 @@ import moment from "moment";
 @model()
 export class Blockchain extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
-    generated: false,
-    required: true,
+    required: false,
+    generated: true,
     useDefaultIdType: false,
+    defaultFn: 'now',
     postgresql: {
-      dataType: 'now',
+      defaultFn: 'now',
     },
   })
   id: string;
