@@ -12,8 +12,7 @@ This repository contains an API that connects to the distributed Storage and Blo
 
 Please make sure you have the following installed and running properly
 
-* [Node.js](https://nodejs.org/en/download/), [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/install/)
-* It you will also need NPM to install the necessary packages (NPM is distributed with Node.js. For more information see: <https://www.npmjs.com/get-npm>)
+* [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
 ### Configuration
 
