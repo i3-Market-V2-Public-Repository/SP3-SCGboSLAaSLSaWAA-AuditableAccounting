@@ -1,24 +1,15 @@
-stages:
-  - build
-  - deploy
-
-variables:
-  NEXUS_REGISTRY: "95.211.3.251:8123"
-  NEXUS_IMAGE_TAG: $NEXUS_REGISTRY/auditable-accounting:latest
-  URL_DEPLOY_AA: "http://95.211.3.249:19000/api/v2/job_templates/34/launch/"
-
 build:
   stage: build
   image:
-    name: docker:19.03.13
+    name: docker
   services:
-      - name: docker:19.03.13-dind
-        entrypoint: ["sh", "-c", "dockerd-entrypoint.sh --insecure-registry=$NEXUS_REGISTRY"]
+      - name: docker:dind
+        command: ["--insecure-registry=$NEXUS_REGISTRY"]
   before_script:
-    - docker login $NEXUS_REGISTRY -u $NEXUS_USER -p $NEXUS_PASSWORD
+    - docker login -u $NEXUS_USER -p $NEXUS_PASSWORD "$NEXUS_REGISTRY"
   script:
-    - docker build -t $NEXUS_IMAGE_TAG .
-    - docker push $NEXUS_IMAGE_TAG
+    - docker build -t $NEXUS_REGISTRY/auditable-accounting .
+    - docker push $NEXUS_REGISTRY/auditable-accounting
   after_script:
     - docker logout $NEXUS_REGISTRY
   rules:
