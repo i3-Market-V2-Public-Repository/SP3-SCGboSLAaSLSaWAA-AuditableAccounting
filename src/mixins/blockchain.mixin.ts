@@ -16,6 +16,7 @@ import {
   InfoForTransactions,
   MerkleProofType
 } from '../types';
+import {Proof} from "@i3m/vdi";
 
 export interface Repository {
   find: (param: any) => any;
@@ -121,7 +122,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
       });
 
       const treeStruct = this.merkleTreeService.tree(hashOfRegistries);
-      const newRoot = treeStruct[0]; //The merkle root is the element on the 1st position of the array since it is constructed as a binary tree
+      const newRoot = treeStruct.root; //The merkle root is the element on the 1st position of the array since it is constructed as a binary tree
 
       const latestTxCreated = await this.blockchainRepo.findOne({
         order: ['nonce DESC'],
@@ -165,7 +166,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
       try {
         //We update every registry by adding the merkleRoot and its proof
         for (let i = 0; i < registries.length; ++i) {
-          const proof: MerkleProofType[] = this.merkleTreeService.proof(
+          const proof: Proof = this.merkleTreeService.proof(
             treeStruct,
             registries[i].hash,
           );

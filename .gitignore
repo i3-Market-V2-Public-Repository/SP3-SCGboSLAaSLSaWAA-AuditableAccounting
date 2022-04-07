@@ -64,3 +64,6 @@ typings/
 *.tsbuildinfo
 
 secrets.json
+
+.idea/
+*.iml

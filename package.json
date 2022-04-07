@@ -64,6 +64,7 @@
   ],
   "dependencies": {
     "@hardapps/lb-connector-web3plus": "^0.0.12",
+    "@i3m/vdi": "^1.6.0",
     "@loopback/boot": "^3.2.0",
     "@loopback/cli": "^2.21.0",
     "@loopback/core": "^2.14.0",

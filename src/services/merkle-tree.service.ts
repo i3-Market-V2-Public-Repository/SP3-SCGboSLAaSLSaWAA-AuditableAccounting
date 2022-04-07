@@ -1,78 +1,39 @@
-import Web3Utils from 'web3-utils';
-import {MerkleProofType} from '../types';
+import {CSMT, DataSource, Proof} from "@i3m/vdi";
 
 export class MerkleTreeService {
   constructor() {}
 
   /**
    * Calculates Merkle Root
-   * @param leafNodes Vector containing all the leafs of the tree
+   * @param hashes Array of hashes
    */
-  tree(leafNodes: Array<string>): Array<string> {
-    const numberOfNodes: number = leafNodes.length;
-    const depthTree: number =
-      leafNodes.length === 1 ? 1 : Math.ceil(Math.log2(numberOfNodes));
+  tree(hashes: Array<string>): CSMT {
+    let tree = {} as CSMT;
 
-    const zero =
-      '0x0000000000000000000000000000000000000000000000000000000000000000';
-    //Es podria canviar a un random (not clear)
+    let dataSource = hashes.map(hash => {
+      let r = {} as DataSource;
+      r.id = this.hexToBytes(hash);
+      return r;
+    });
 
-    let merkleTreeNodes: Array<string> = [...leafNodes];
+    tree.insert(dataSource);
 
-    while (merkleTreeNodes.length < Math.pow(2, depthTree)) {
-      merkleTreeNodes.push(zero);
-    }
-
-    for (let i = depthTree - 1; i > 0; --i) {
-      let upperLevelNodes = [];
-      for (let j = 0; j < Math.pow(2, i + 1); j += 2) {
-        const node = Web3Utils.keccak256(
-          merkleTreeNodes[j] + merkleTreeNodes[j + 1],
-        );
-        upperLevelNodes.push(node);
-      }
-      merkleTreeNodes.unshift(...upperLevelNodes);
-    }
-
-    const root = Web3Utils.keccak256(
-      merkleTreeNodes[0] + depthTree.toString() + merkleTreeNodes[1],
-    );
-    merkleTreeNodes.unshift(root);
-    return merkleTreeNodes;
+    return tree;
   }
 
   /**
-   * Calculates the Merkle Proof for a given node
-   * @param fullTree Vector containing all the nodes of the tree
-   * @param node Node that we are calculating its merkle Proof
+   * Calculates the Merkle Proof for a given hash
+   * @param tree tree object
+   * @param hash hash value to generate the proof
    */
-  proof(fullTree: Array<string>, node: string): MerkleProofType[] {
-    let position = fullTree.indexOf(node);
-    const MerkleProof: MerkleProofType[] = [];
-    let index: number;
-    while (position > 2) {
-      index = position % 2 === 0 ? position - 1 : position + 1; //The proof element is rightside or leftside?
-      //If the element is rightside, we add the left one and specifies it in order to do the validation proof
-      //correctly because (hash(a,b) != hash(b,a))
+   proof(tree: CSMT, hash: string): Proof {
+     return tree.createProof(this.hexToBytes(hash));
+  }
 
-      //const complementary = fullTree[index] === zero ? fullTree[position] : fullTree[index];
-      const complementary = fullTree[index];
-
-      const concatenateHashTo = index === position - 1 ? 'left' : 'right';
-      MerkleProof.push({hash: complementary, concatenateHashTo});
-
-      position = position % 2 === 0 ? position / 2 - 1 : (position - 1) / 2;
-    }
-
-    const depth = Math.floor(Math.log2(fullTree.length));
-    const concatenateHashTo = position === 2 ? 'left' : 'right';
-    const hash =
-      position === 2
-        ? fullTree[1] + depth.toString()
-        : depth.toString() + fullTree[2];
-
-    MerkleProof.push({hash, concatenateHashTo});
-
-    return MerkleProof;
+  private hexToBytes(hex: string) : Array<number> {
+    let bytes = [];
+    for (let c = 0; c < hex.length; c += 2)
+      bytes.push(parseInt(hex.substr(c, 2), 16));
+    return bytes;
   }
 }
