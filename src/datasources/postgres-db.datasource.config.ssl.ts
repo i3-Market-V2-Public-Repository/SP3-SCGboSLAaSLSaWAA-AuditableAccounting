@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 export const config = {
   name: "postgresDB",
   connector: "postgresql",
@@ -8,8 +10,8 @@ export const config = {
   debug: true,
   ssl: {
     rejectUnauthorized: false,
-    ca: process.env.DB_CA ? process.env.DB_CA : '',
-    key: process.env.DB_KEY ? process.env.DB_KEY : '',
-    cert: process.env.DB_CRT ? process.env.DB_CRT : '',
+    ca: fs.readFileSync('/certs/ca.crt').toString(),
+    key: fs.readFileSync('/certs/client.auditable_accounting_node1.key').toString(),
+    cert: fs.readFileSync('/certs/client.auditable_accounting_node1.crt').toString(),
   },
 };
