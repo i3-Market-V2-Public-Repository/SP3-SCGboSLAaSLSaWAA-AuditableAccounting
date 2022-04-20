@@ -30,7 +30,6 @@ export async function main(options: ApplicationConfig = {}) {
   if (!existsRegistry) await client.query('CREATE TABLE public.registry (id integer PRIMARY KEY NOT NULL DEFAULT nextval(\'public.registry_id_seq\'), dateofreception integer, datahash text, merkleroot text, merkleproof text, readyforregistration boolean DEFAULT true)');
   await client.query(`ALTER TABLE IF EXISTS public.blockchain OWNER TO "${process.env.DB_USER}"`);
   await client.query(`ALTER TABLE IF EXISTS public.registry OWNER TO "${process.env.DB_USER}"`);
-  await client.query(`ALTER TABLE IF EXISTS public.registry_id_seq OWNER TO "${process.env.DB_USER}"`);
   await client.query(`ALTER SEQUENCE IF EXISTS public.registry_id_seq OWNED BY public.registry.id`);
   await client.end();
   console.log("DB migration completed.");
