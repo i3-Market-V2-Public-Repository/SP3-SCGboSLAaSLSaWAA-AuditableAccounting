@@ -1,4 +1,5 @@
-import {CSMT, DataSource, Proof} from "@i3m/vdi";
+import {CSMT} from "@i3m/vdi/dist/services/csmt";
+import {DataSource, Proof} from "@i3m/vdi/dist/models/models";
 
 export class MerkleTreeService {
   constructor() {}
@@ -8,13 +9,9 @@ export class MerkleTreeService {
    * @param hashes Array of hashes
    */
   tree(hashes: Array<string>): CSMT {
-    let tree = {} as CSMT;
+    let tree = new CSMT(false);
 
-    let dataSource = hashes.map(hash => {
-      let r = {} as DataSource;
-      r.id = this.hexToBytes(hash);
-      return r;
-    });
+    let dataSource = hashes.map(hash => new DataSource(this.hexToBytes(hash)));
 
     tree.insert(dataSource);
 

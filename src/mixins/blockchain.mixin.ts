@@ -8,15 +8,15 @@ import {
   OK_RESPONSE,
   TRANSACTION_STATUS
 } from '../controllers/oas-specifications';
-import {Blockchain} from '../models';
-import {BlockchainRepository} from '../repositories';
+import {Blockchain, MerkleTree} from '../models';
+import {BlockchainRepository, MerkleTreeRepository} from '../repositories';
 import {MerkleTreeService} from '../services';
 import {
   InfoForRegistries,
   InfoForTransactions,
   MerkleProofType
 } from '../types';
-import {Proof} from "@i3m/vdi";
+import {Proof} from "@i3m/vdi/dist/models/models";
 
 export interface Repository {
   find: (param: any) => any;
@@ -38,6 +38,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
     contractAddress: any;
     merkleTreeService: MerkleTreeService;
     blockchainRepo: BlockchainRepository;
+    merkleTreeRepo: MerkleTreeRepository;
     constructor(...args: any[]) {
       super(args);
       this.smartContract = smartContract;
@@ -49,6 +50,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
       this.contractAddress = this.contracts[smartContract].options.address;
       this.merkleTreeService = args[1];
       this.blockchainRepo = args[2];
+      this.merkleTreeRepo = args[3];
     }
 
     // This function returns the current root of the Merkle tree stored in the SC
@@ -122,7 +124,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
       });
 
       const treeStruct = this.merkleTreeService.tree(hashOfRegistries);
-      const newRoot = treeStruct.root; //The merkle root is the element on the 1st position of the array since it is constructed as a binary tree
+      const newRoot = BigInt("0x" + treeStruct.root).toString(10); //The merkle root is the element on the 1st position of the array since it is constructed as a binary tree
 
       const latestTxCreated = await this.blockchainRepo.findOne({
         order: ['nonce DESC'],
@@ -193,6 +195,22 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
         await tx.commit();
       } catch (error) {
         await tx.rollback();
+      }
+
+      const txm = await this.merkleTreeRepo.dataSource.beginTransaction({
+        isolationLevel: IsolationLevel.READ_COMMITTED,
+        timeout: 60000,
+      });
+
+      try {
+        const merkleTree: Partial<MerkleTree> = {};
+        merkleTree.id = newRoot;
+        merkleTree.merkletree = JSON.stringify(Array.from(treeStruct.nodes.entries()));
+        await this.merkleTreeRepo.create(merkleTree, {transaction: txm});
+
+        await txm.commit();
+      } catch (error) {
+        await txm.rollback();
       }
 
       return OK_RESPONSE(

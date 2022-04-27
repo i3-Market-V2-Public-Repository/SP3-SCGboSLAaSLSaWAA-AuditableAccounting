@@ -2,7 +2,7 @@ import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {get, post} from '@loopback/rest';
 import {BlockchainMixin} from '../mixins/blockchain.mixin';
-import {BlockchainRepository, RegistryRepository} from '../repositories';
+import {BlockchainRepository, RegistryRepository, MerkleTreeRepository} from '../repositories';
 import {MerkleTreeService} from '../services';
 import {MERKLE_TREE_SERVICE} from '../services/keys';
 import {
@@ -16,6 +16,7 @@ class BaseController {
     dataAccessObject: any,
     merkleTreeService: MerkleTreeService,
     blockchainRepo: BlockchainRepository,
+    merkleTreeRepo: MerkleTreeRepository,
   ) { }
 }
 
@@ -30,8 +31,10 @@ export class RegistryBlockchainController extends BlockchainMixin(
     public blockchainRepo: BlockchainRepository,
     @repository(RegistryRepository)
     protected registryRepository: RegistryRepository,
+    @repository(MerkleTreeRepository)
+    public merkleTreeRepo: MerkleTreeRepository,
   ) {
-    super(dataAccessObject, merkleTreeService, blockchainRepo);
+    super(dataAccessObject, merkleTreeService, blockchainRepo, merkleTreeRepo);
   }
 
   @post('/calculateMerkleRoot', {
