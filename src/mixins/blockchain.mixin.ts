@@ -175,7 +175,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
 
           const updatedRegistry = {
             merkleRoot: newRoot,
-            merkleProof: proof,
+            merkleProof: [JSON.stringify(proof)],
           };
 
           await repositories[registries[i].indexRepo].updateById(
@@ -194,6 +194,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
 
         await tx.commit();
       } catch (error) {
+        console.log(error);
         await tx.rollback();
       }
 
@@ -210,6 +211,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
 
         await txm.commit();
       } catch (error) {
+        console.log(error);
         await txm.rollback();
       }
 
