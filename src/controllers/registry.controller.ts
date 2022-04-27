@@ -4,18 +4,11 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
-  getModelSchemaRef,
-  patch,
-  put,
-  del,
-  requestBody,
-  response,
+  del, get,
+  getModelSchemaRef, param, patch, post, put, requestBody
 } from '@loopback/rest';
 import {Registry} from '../models';
 import {RegistryRepository} from '../repositories';
@@ -24,12 +17,16 @@ export class RegistryController {
   constructor(
     @repository(RegistryRepository)
     public registryRepository: RegistryRepository,
-  ) {}
+  ) { }
 
-  @post('/registries')
-  @response(200, {
-    description: 'Registry model instance',
-    content: {'application/json': {schema: getModelSchemaRef(Registry)}},
+  @post('/registries', {
+    security: [{openidConnect: []}],
+    responses: {
+      '200': {
+        description: 'Registry model instance',
+        content: {'application/json': {schema: getModelSchemaRef(Registry)}},
+      }
+    },
   })
   async create(
     @requestBody({
@@ -53,25 +50,33 @@ export class RegistryController {
     return this.registryRepository.create(registry);
   }
 
-  @get('/registries/count')
-  @response(200, {
-    description: 'Registry model count',
-    content: {'application/json': {schema: CountSchema}},
+  @get('/registries/count', {
+    security: [{openidConnect: []}],
+    responses: {
+      '200': {
+        description: 'Registry model count',
+        content: {'application/json': {schema: CountSchema}},
+      }
+    },
   })
   async count(@param.where(Registry) where?: Where<Registry>): Promise<Count> {
     return this.registryRepository.count(where);
   }
 
-  @get('/registries')
-  @response(200, {
-    description: 'Array of Registry model instances',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'array',
-          items: getModelSchemaRef(Registry, {includeRelations: true}),
+  @get('/registries', {
+    security: [{openidConnect: []}],
+    responses: {
+      '200': {
+        description: 'Array of Registry model instances',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef(Registry, {includeRelations: true}),
+            },
+          },
         },
-      },
+      }
     },
   })
   async find(
@@ -80,10 +85,14 @@ export class RegistryController {
     return this.registryRepository.find(filter);
   }
 
-  @patch('/registries')
-  @response(200, {
-    description: 'Registry PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
+  @patch('/registries', {
+    security: [{openidConnect: []}],
+    responses: {
+      '200': {
+        description: 'Registry PATCH success count',
+        content: {'application/json': {schema: CountSchema}},
+      }
+    },
   })
   async updateAll(
     @requestBody({
@@ -99,13 +108,17 @@ export class RegistryController {
     return this.registryRepository.updateAll(registry, where);
   }
 
-  @get('/registries/{id}')
-  @response(200, {
-    description: 'Registry model instance',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(Registry, {includeRelations: true}),
-      },
+  @get('/registries/{id}', {
+    security: [{openidConnect: []}],
+    responses: {
+      '200': {
+        description: 'Registry model instance',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Registry, {includeRelations: true}),
+          },
+        },
+      }
     },
   })
   async findById(
@@ -116,9 +129,13 @@ export class RegistryController {
     return this.registryRepository.findById(id, filter);
   }
 
-  @patch('/registries/{id}')
-  @response(204, {
-    description: 'Registry PATCH success',
+  @patch('/registries/{id}', {
+    security: [{openidConnect: []}],
+    responses: {
+      '204': {
+        description: 'Registry PATCH success',
+      }
+    },
   })
   async updateById(
     @param.path.number('id') id: number,
@@ -134,9 +151,13 @@ export class RegistryController {
     await this.registryRepository.updateById(id, registry);
   }
 
-  @put('/registries/{id}')
-  @response(204, {
-    description: 'Registry PUT success',
+  @put('/registries/{id}', {
+    security: [{openidConnect: []}],
+    responses: {
+      '204': {
+        description: 'Registry PUT success',
+      }
+    },
   })
   async replaceById(
     @param.path.number('id') id: number,
@@ -145,9 +166,13 @@ export class RegistryController {
     await this.registryRepository.replaceById(id, registry);
   }
 
-  @del('/registries/{id}')
-  @response(204, {
-    description: 'Registry DELETE success',
+  @del('/registries/{id}', {
+    security: [{openidConnect: []}],
+    responses: {
+      '204': {
+        description: 'Registry DELETE success',
+      }
+    },
   })
   async deleteById(@param.path.number('id') id: number): Promise<void> {
     await this.registryRepository.deleteById(id);

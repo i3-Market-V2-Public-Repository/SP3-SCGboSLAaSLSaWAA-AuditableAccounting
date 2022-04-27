@@ -35,6 +35,7 @@ export class RegistryBlockchainController extends BlockchainMixin(
   }
 
   @post('/calculateMerkleRoot', {
+    security: [{openidConnect: []}],
     responses: {'200': RESP_CALCULATE_ROOT},
   })
   async calculateMerkleTree(): Promise<any> {
@@ -42,6 +43,7 @@ export class RegistryBlockchainController extends BlockchainMixin(
   }
 
   @get('/getCurrentRoot', {
+    security: [{openidConnect: []}],
     responses: {'200': RESP_GET_ROOT},
   })
   async getCurrentRoot(): Promise<any> {
@@ -49,6 +51,7 @@ export class RegistryBlockchainController extends BlockchainMixin(
   }
 
   @post('/updateRegistries', {
+    security: [{openidConnect: []}],
     responses: {'200': RESP_UPDATE_BLOCKCHAIN_TX},
   })
   async updateTxStatus(): Promise<any> {
