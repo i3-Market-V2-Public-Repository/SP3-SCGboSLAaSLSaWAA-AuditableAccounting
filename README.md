@@ -26,12 +26,21 @@ nano .env
 Then, launch the docker compose to build images and start the container.
 
 ```bash
-docker-compose up --force-recreate
+docker compose up -d
+
 ```
 
 By default, these are the URLs of each component.
 
-* API: <http://localhost:8080>
+* API: <http://localhost:3000>
+* DB Dashboard: <http://localhost:8080>
+
+To access the database exec:
+
+```bash
+docker compose exec -it cockroach cockroach sql --insecure
+
+```
 
 ## How to build, install, or deploy it
 
@@ -47,4 +56,4 @@ Pull requests are always appreciated.
 
 ## License
 
-EUPL 
+EUPL
