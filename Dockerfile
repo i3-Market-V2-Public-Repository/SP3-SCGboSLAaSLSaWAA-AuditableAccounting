@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build &&\
   npm prune --production
 
-FROM node:16-slim
+FROM node:16
 
 WORKDIR /app
 
