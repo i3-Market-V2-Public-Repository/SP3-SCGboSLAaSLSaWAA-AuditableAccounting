@@ -1,3 +1,4 @@
+import {Proof} from "@i3m/vdi/dist/models/models";
 import {MixinTarget} from '@loopback/core';
 import {IsolationLevel} from '@loopback/repository';
 import moment from 'moment';
@@ -13,10 +14,8 @@ import {BlockchainRepository, MerkleTreeRepository} from '../repositories';
 import {MerkleTreeService} from '../services';
 import {
   InfoForRegistries,
-  InfoForTransactions,
-  MerkleProofType
+  InfoForTransactions
 } from '../types';
-import {Proof} from "@i3m/vdi/dist/models/models";
 
 export interface Repository {
   find: (param: any) => any;
@@ -56,8 +55,9 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
     // This function returns the current root of the Merkle tree stored in the SC
     async mixinGetCurrentRoot(): Promise<any> {
       try {
+        const addr = this.web3.eth.accounts.privateKeyToAccount(process.env.WEB3_KEY).address;
         const root = this.web3.utils.numberToHex(
-          await this.contracts[this.smartContract].methods.currentRoot().call(),
+          await this.contracts[this.smartContract].methods.root(addr).call()
         );
         return OK_RESPONSE(this.providerName, this.contractAddress, root, '-1');
       } catch (error: any) {
@@ -68,9 +68,10 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
             return CONNECTION_ERROR(this.providerName, this.contractAddress);
           }
           try {
+            const addr = this.web3.eth.accounts.privateKeyToAccount(process.env.WEB3_KEY);
             const root = this.web3.utils.numberToHex(
               await this.contracts[this.smartContract].methods
-                .currentRoot()
+                .root(addr)
                 .call(),
             );
             return OK_RESPONSE(
@@ -131,110 +132,106 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
         const existingBlockchainForRoot = await this.blockchainRepo.findById(newRoot);
 
         return OK_RESPONSE(
-            this.providerName,
-            this.contractAddress,
-            newRoot,
-            existingBlockchainForRoot.txHash,
+          this.providerName,
+          this.contractAddress,
+          newRoot,
+          existingBlockchainForRoot.txHash,
         );
       } catch (error) {
         // Expected error: if the entity is not found, we continue the logic below
       }
 
-        const latestTxCreated = await this.blockchainRepo.findOne({
-          order: ['nonce DESC'],
-        }); //Last nonce stored in our DB
+      const latestTxCreated = await this.blockchainRepo.findOne({
+        order: ['nonce DESC'],
+      }); //Last nonce stored in our DB
 
-        //console.log('LATEST CREATED TX', latestTxCreated);
+      //console.log('LATEST CREATED TX', latestTxCreated);
 
-        let nextNonce = await this.web3.eth.getTransactionCount(
-            this.from.address,
-        ); //Last nonce of a transaction that we have sent to Blockchain
+      let nextNonce = await this.web3.eth.getTransactionCount(
+        this.from.address,
+      ); //Last nonce of a transaction that we have sent to Blockchain
 
-        console.log('NEXT NONCE', nextNonce);
+      //It is important to check if latestTxCreated because the first time a transaction is sent, latestTxCreated will be null;
+      //This IF is done because we may accumulate several Tx in our database before sending it to Blockchain, and each TX should have a different nonce.
+      if (latestTxCreated && nextNonce <= latestTxCreated.nonce) {
+        nextNonce = latestTxCreated!.nonce + 1;
+      }
 
-        //It is important to check if latestTxCreated because the first time a transaction is sent, latestTxCreated will be null;
-        //This IF is done because we may accumulate several Tx in our database before sending it to Blockchain, and each TX should have a different nonce.
-        if (latestTxCreated && nextNonce <= latestTxCreated.nonce) {
-          nextNonce = latestTxCreated!.nonce + 1;
+      //Precalculate the transaction hash value using Hardapps connector
+      const txInfo = await this.contracts[this.smartContract].methods
+        .setRoot(newRoot)
+        .signedTx({nonce: nextNonce});
+
+      console.log('TX INFO', txInfo);
+
+      const txHash = txInfo.signedTx.transactionHash;
+
+      //We will update all the registries of the Merkle Tree in our database transactionally, meaning that if any of
+      //the updates fails, all of them will be reverted
+
+      //If IsolationLevel.READ_COMMITED, queries sees only data committed before the query began and never sees either
+      // uncommitted data or changes committed during query execution by concurrent transactions
+      const tx = await repositories[0].dataSource.beginTransaction({
+        isolationLevel: IsolationLevel.READ_COMMITTED,
+        timeout: 60000,
+      });
+
+      try {
+        //We update every registry by adding the merkleRoot and its proof
+        for (let i = 0; i < registries.length; ++i) {
+          const proof: Proof = this.merkleTreeService.proof(
+            treeStruct,
+            registries[i].hash,
+          );
+
+          const updatedRegistry = {
+            merkleRoot: newRoot,
+            merkleProof: [JSON.stringify(proof)],
+          };
+
+          await repositories[registries[i].indexRepo].updateById(
+            registries[i].id,
+            updatedRegistry,
+            {transaction: tx},
+          );
         }
 
-        console.log('NEXT NONCE AFTER MODIF', nextNonce);
+        const blockchainInfo: Partial<Blockchain> = {};
+        blockchainInfo.id = newRoot;
+        blockchainInfo.nonce = txInfo.nonce;
+        blockchainInfo.txHash = txHash;
+        blockchainInfo.registrationState = 'unregistered'; //Not stored neither send to Blockchain yet
+        await this.blockchainRepo.create(blockchainInfo, {transaction: tx});
 
-        //Precalculate the transaction hash value using Hardapps connector
-        const txInfo = await this.contracts[this.smartContract].methods
-            .setNewRegistry(newRoot)
-            .signedTx({nonce: nextNonce});
+        await tx.commit();
+      } catch (error) {
+        console.log(error);
+        await tx.rollback();
+      }
 
-        //console.log('TX INFO', txInfo);
+      const txm = await this.merkleTreeRepo.dataSource.beginTransaction({
+        isolationLevel: IsolationLevel.READ_COMMITTED,
+        timeout: 60000,
+      });
 
-        const txHash = txInfo.signedTx.transactionHash;
+      try {
+        const merkleTree: Partial<MerkleTree> = {};
+        merkleTree.id = newRoot;
+        merkleTree.merkletree = JSON.stringify(Array.from(treeStruct.nodes.entries()));
+        await this.merkleTreeRepo.create(merkleTree, {transaction: txm});
 
-        //We will update all the registries of the Merkle Tree in our database transactionally, meaning that if any of
-        //the updates fails, all of them will be reverted
+        await txm.commit();
+      } catch (error) {
+        console.log(error);
+        await txm.rollback();
+      }
 
-        //If IsolationLevel.READ_COMMITED, queries sees only data committed before the query began and never sees either
-        // uncommitted data or changes committed during query execution by concurrent transactions
-        const tx = await repositories[0].dataSource.beginTransaction({
-          isolationLevel: IsolationLevel.READ_COMMITTED,
-          timeout: 60000,
-        });
-
-        try {
-          //We update every registry by adding the merkleRoot and its proof
-          for (let i = 0; i < registries.length; ++i) {
-            const proof: Proof = this.merkleTreeService.proof(
-                treeStruct,
-                registries[i].hash,
-            );
-
-            const updatedRegistry = {
-              merkleRoot: newRoot,
-              merkleProof: [JSON.stringify(proof)],
-            };
-
-            await repositories[registries[i].indexRepo].updateById(
-                registries[i].id,
-                updatedRegistry,
-                {transaction: tx},
-            );
-          }
-
-          const blockchainInfo: Partial<Blockchain> = {};
-          blockchainInfo.id = newRoot;
-          blockchainInfo.nonce = txInfo.nonce;
-          blockchainInfo.txHash = txHash;
-          blockchainInfo.registrationState = 'unregistered'; //Not stored neither send to Blockchain yet
-          await this.blockchainRepo.create(blockchainInfo, {transaction: tx});
-
-          await tx.commit();
-        } catch (error) {
-          console.log(error);
-          await tx.rollback();
-        }
-
-        const txm = await this.merkleTreeRepo.dataSource.beginTransaction({
-          isolationLevel: IsolationLevel.READ_COMMITTED,
-          timeout: 60000,
-        });
-
-        try {
-          const merkleTree: Partial<MerkleTree> = {};
-          merkleTree.id = newRoot;
-          merkleTree.merkletree = JSON.stringify(Array.from(treeStruct.nodes.entries()));
-          await this.merkleTreeRepo.create(merkleTree, {transaction: txm});
-
-          await txm.commit();
-        } catch (error) {
-          console.log(error);
-          await txm.rollback();
-        }
-
-        return OK_RESPONSE(
-            this.providerName,
-            this.contractAddress,
-            newRoot,
-            txHash,
-        );
+      return OK_RESPONSE(
+        this.providerName,
+        this.contractAddress,
+        newRoot,
+        txHash,
+      );
     }
 
     // This function register the tx to the Blockchain
@@ -264,17 +261,16 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
       );
 
       for (let tx of txNotSendedToBlockchain) {
+
         //Calculate the signed Tx
         const txInfo = await this.contracts[smartContract].methods
-          .setNewRegistry(tx!.id)
+          .setRoot(tx!.id)
           .signedTx({
             nonce: tx!.nonce,
           });
 
-        console.log('txInfo:', txInfo);
-
         //Send the signed Tx to the Blockchain
-        await this.contracts[smartContract].methods.setNewRegistry(tx.id).send({
+        await this.contracts[smartContract].methods.setRoot(tx.id).send({
           signedTx: txInfo.signedTx,
         });
 
@@ -353,7 +349,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
         if (moment.utc().unix() - tx!.timestamp > timeBeforeUpdatingGasPrice) {
           //Calculate the signed Tx
           const txInfo = await this.contracts[smartContract].methods
-            .setNewRegistry(tx!.id)
+            .setRoot(tx!.id)
             .signedTx({
               nonce: tx!.nonce,
             });
@@ -378,7 +374,7 @@ export function BlockchainMixin<T extends MixinTarget<object>>(
 
             //Send the signed Tx to the Blockchain
             await this.contracts[this.smartContract].methods
-              .setNewRegistry(tx!.id)
+              .setRoot(tx!.id)
               .send({
                 signedTx: txInfo.signedTx,
               });

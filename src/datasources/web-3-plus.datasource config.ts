@@ -10,75 +10,37 @@ export const config = {
       name: 'Registry',
       abi: [
         {
-          inputs: [],
-          payable: false,
-          stateMutability: 'nonpayable',
-          type: 'constructor',
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "name": "root",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
         },
         {
-          anonymous: false,
-          inputs: [
+          "inputs": [
             {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'prevRootHash',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'currentRootHash',
-              type: 'uint256',
-            },
+              "internalType": "uint256",
+              "name": "_root",
+              "type": "uint256"
+            }
           ],
-          name: 'newRegistry',
-          type: 'event',
-        },
-        {
-          constant: true,
-          inputs: [],
-          name: 'currentRoot',
-          outputs: [
-            {
-              internalType: 'uint256',
-              name: '',
-              type: 'uint256',
-            },
-          ],
-          payable: false,
-          stateMutability: 'view',
-          type: 'function',
-        },
-        {
-          constant: true,
-          inputs: [],
-          name: 'owner',
-          outputs: [
-            {
-              internalType: 'address',
-              name: '',
-              type: 'address',
-            },
-          ],
-          payable: false,
-          stateMutability: 'view',
-          type: 'function',
-        },
-        {
-          constant: false,
-          inputs: [
-            {
-              internalType: 'uint256',
-              name: '_newRoot',
-              type: 'uint256',
-            },
-          ],
-          name: 'setNewRegistry',
-          outputs: [],
-          payable: false,
-          stateMutability: 'nonpayable',
-          type: 'function',
-        },
+          "name": "setRoot",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        }
       ],
       address: process.env.WEB3_SC_ADDR,
     },
