@@ -93,6 +93,9 @@
     "glob-parent": "5.1.2",
     "ejs": "^3.1.7",
     "decode-uri-component": "0.2.1",
-    "got": "11.8.5"
+    "got": "11.8.5",
+    "cacheable-request": "10.2.7",
+    "http-cache-semantics": "4.1.1",
+    "json5": "2.2.2"
   }
 }

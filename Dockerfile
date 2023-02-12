@@ -22,7 +22,8 @@ COPY --from=builder /app/public public
 COPY --from=builder /app/node_modules node_modules
 
 RUN apk update &&\
-    apk upgrade
+    apk upgrade &&\
+    npm i -g npm
 
 EXPOSE 3000
 
